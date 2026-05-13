@@ -1,0 +1,7 @@
+opencv-python
+pyzbar
+python-dotenv
+Pillow
+numpy
+face-recognition
+# pip install opencv-contrib-python  # Cài bản này nếu muốn dùng WeChat QR (siêu mạnh)

@@ -1,0 +1,496 @@
+@import "tailwindcss";
+
+:root {
+  --font-main: var(--font-inter, 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif);
+
+  /* Neutral Palette */
+  --bg-app:        #F8FAFC;
+  --bg-surface:    #FFFFFF;
+  --border-subtle: #E2E8F0;
+  --text-primary:  #0F172A;
+  --text-secondary:#475569;
+  --text-muted:    #94A3B8;
+
+  /* Brand accent – Amber/Brown (subtle) */
+  --brand-700:     #92400E;
+  --brand-100:     #FEF3C7;
+}
+
+/* =========================================================
+   GLOBAL BASE
+   ========================================================= */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'ss01', 'cv01', 'cv11';
+}
+
+body {
+  font-family: var(--font-main);
+  background-color: var(--bg-app);
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* =========================================================
+   SCROLLBAR
+   ========================================================= */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+
+/* =========================================================
+   PRIMEREACT – BUTTON OVERRIDES (Clean, Professional)
+   ========================================================= */
+
+/* Reset all button base to professional standard */
+.p-button {
+  font-family: var(--font-main) !important;
+  font-weight: 500 !important;
+  font-size: 0.875rem !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  border-radius: 0.5rem !important;
+  padding: 0.5rem 1.1rem !important;
+  transition: background-color 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease !important;
+  box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05) !important;
+}
+
+.p-button:enabled:hover {
+  transform: none !important;
+  box-shadow: 0 2px 6px 0 rgba(0,0,0,0.10) !important;
+}
+
+.p-button:enabled:active {
+  transform: scale(0.98) !important;
+  box-shadow: none !important;
+}
+
+/* Icon-only round action buttons in Table */
+.p-datatable .p-button.p-button-rounded,
+.p-button.p-button-rounded {
+  width: 2rem !important;
+  height: 2rem !important;
+  padding: 0 !important;
+  border-radius: 0.375rem !important;
+  box-shadow: none !important;
+}
+
+/* Primary (Blue) */
+.p-button:not(.p-button-outlined):not(.p-button-text):not(.p-button-link):not(.p-button-secondary):not(.p-button-success):not(.p-button-warning):not(.p-button-danger):not(.p-button-info):not(.p-button-help) {
+  background: #2563EB !important;
+  color: white !important;
+  border: 1px solid #2563EB !important;
+}
+.p-button:not(.p-button-outlined):not(.p-button-text):not(.p-button-link):not(.p-button-secondary):not(.p-button-success):not(.p-button-warning):not(.p-button-danger):not(.p-button-info):not(.p-button-help):enabled:hover {
+  background: #1D4ED8 !important;
+  border-color: #1D4ED8 !important;
+}
+
+/* Outlined buttons – unified */
+.p-button.p-button-outlined {
+  background: transparent !important;
+  box-shadow: none !important;
+  font-weight: 500 !important;
+}
+.p-button.p-button-outlined:enabled:hover {
+  opacity: 0.85;
+}
+
+/* Outlined severity colors */
+.p-button.p-button-outlined.p-button-secondary { border: 1px solid #CBD5E1 !important; color: #475569 !important; }
+.p-button.p-button-outlined.p-button-secondary:enabled:hover { background: #F8FAFC !important; }
+.p-button.p-button-outlined.p-button-info  { border: 1px solid #93C5FD !important; color: #2563EB !important; }
+.p-button.p-button-outlined.p-button-info:enabled:hover  { background: #EFF6FF !important; }
+.p-button.p-button-outlined.p-button-success { border: 1px solid #6EE7B7 !important; color: #059669 !important; }
+.p-button.p-button-outlined.p-button-success:enabled:hover { background: #ECFDF5 !important; }
+.p-button.p-button-outlined.p-button-warning { border: 1px solid #FCD34D !important; color: #B45309 !important; }
+.p-button.p-button-outlined.p-button-warning:enabled:hover { background: #FFFBEB !important; }
+.p-button.p-button-outlined.p-button-danger  { border: 1px solid #FCA5A5 !important; color: #DC2626 !important; }
+.p-button.p-button-outlined.p-button-danger:enabled:hover  { background: #FEF2F2 !important; }
+.p-button.p-button-outlined.p-button-help  { border: 1px solid #C4B5FD !important; color: #7C3AED !important; }
+.p-button.p-button-outlined.p-button-help:enabled:hover  { background: #F5F3FF !important; }
+
+/* Text buttons */
+.p-button.p-button-text {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+.p-button.p-button-text:enabled:hover { background: #F1F5F9 !important; }
+
+/* =========================================================
+   PRIMEREACT – DATATABLE
+   ========================================================= */
+.p-datatable-wrapper { overflow-x: auto; }
+
+.p-datatable .p-datatable-header {
+  background: white !important;
+  border: none !important;
+  padding: 1rem 1.25rem !important;
+}
+
+.p-datatable .p-datatable-thead > tr > th {
+  background: #F8FAFC !important;
+  color: #64748B !important;
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  border: none !important;
+  border-bottom: 1px solid #E2E8F0 !important;
+  padding: 0.75rem 1rem !important;
+  font-family: var(--font-main) !important;
+}
+
+.p-datatable .p-datatable-tbody > tr > td {
+  border: none !important;
+  border-bottom: 1px solid #F1F5F9 !important;
+  padding: 0.875rem 1rem !important;
+  color: var(--text-primary) !important;
+  font-size: 0.875rem !important;
+  font-weight: 400 !important;
+  font-family: var(--font-main) !important;
+  transition: background-color 0.1s ease;
+}
+
+.p-datatable .p-datatable-tbody > tr {
+  background: white !important;
+  transition: background-color 0.1s ease;
+}
+
+.p-datatable .p-datatable-tbody > tr:hover {
+  background: #F8FAFC !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.p-datatable .p-datatable-tbody > tr.p-row-odd {
+  background: #FAFAFA !important;
+}
+
+/* =========================================================
+   PRIMEREACT – PAGINATOR
+   ========================================================= */
+.p-paginator {
+  background: transparent !important;
+  border: none !important;
+  border-top: 1px solid #F1F5F9 !important;
+  padding: 0.75rem 1rem !important;
+  justify-content: flex-end !important;
+  font-family: var(--font-main) !important;
+}
+
+.p-paginator .p-paginator-pages .p-paginator-page {
+  border-radius: 0.375rem !important;
+  font-weight: 500 !important;
+  font-size: 0.875rem !important;
+  color: #64748B !important;
+  min-width: 2rem !important;
+  height: 2rem !important;
+  transition: all 0.15s ease;
+}
+
+.p-paginator .p-paginator-pages .p-paginator-page.p-highlight {
+  background: #2563EB !important;
+  color: white !important;
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3) !important;
+}
+
+.p-paginator .p-paginator-prev,
+.p-paginator .p-paginator-next,
+.p-paginator .p-paginator-first,
+.p-paginator .p-paginator-last {
+  border-radius: 0.375rem !important;
+  color: #94A3B8 !important;
+  min-width: 2rem !important;
+  height: 2rem !important;
+}
+
+/* =========================================================
+   PRIMEREACT – INPUT FIELDS
+   ========================================================= */
+.p-inputtext {
+  font-family: var(--font-main) !important;
+  font-size: 0.875rem !important;
+  font-weight: 400 !important;
+  border-radius: 0.375rem !important;
+  border: 1px solid #CBD5E1 !important;
+  background: white !important;
+  color: var(--text-primary) !important;
+  padding: 0.5625rem 0.75rem !important;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+  box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05) !important;
+}
+
+.p-inputtext::placeholder {
+  color: #94A3B8 !important;
+  font-weight: 400 !important;
+}
+
+.p-inputtext:enabled:focus {
+  border-color: #3B82F6 !important;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important;
+  outline: none !important;
+}
+
+.p-inputgroup .p-inputtext { border-radius: 0 !important; }
+.p-inputgroup .p-inputtext:first-child { border-radius: 0.375rem 0 0 0.375rem !important; }
+.p-inputgroup .p-button:last-child { border-radius: 0 0.375rem 0.375rem 0 !important; }
+
+/* =========================================================
+   PRIMEREACT – DROPDOWN
+   ========================================================= */
+.p-dropdown {
+  font-family: var(--font-main) !important;
+  font-size: 0.875rem !important;
+  border-radius: 0.375rem !important;
+  border: 1px solid #CBD5E1 !important;
+  background: white !important;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05) !important;
+  transition: border-color 0.15s ease !important;
+}
+
+.p-dropdown:not(.p-disabled):hover { border-color: #93C5FD !important; }
+.p-dropdown:not(.p-disabled).p-focus {
+  border-color: #3B82F6 !important;
+  box-shadow: 0 0 0 2px rgba(59,130,246,0.2) !important;
+}
+
+.p-dropdown .p-dropdown-label {
+  font-family: var(--font-main) !important;
+  font-size: 0.875rem !important;
+  font-weight: 400 !important;
+  color: var(--text-primary) !important;
+  padding: 0.5625rem 0.75rem !important;
+}
+
+.p-dropdown-panel {
+  border-radius: 0.5rem !important;
+  border: 1px solid #E2E8F0 !important;
+  box-shadow: 0 10px 15px -3px rgba(0,0,0,0.07), 0 4px 6px -4px rgba(0,0,0,0.05) !important;
+  font-family: var(--font-main) !important;
+}
+
+.p-dropdown-panel .p-dropdown-items .p-dropdown-item {
+  font-size: 0.875rem !important;
+  font-weight: 400 !important;
+  padding: 0.5rem 0.75rem !important;
+  border-radius: 0.25rem !important;
+  color: var(--text-primary) !important;
+  transition: background 0.1s ease;
+}
+
+.p-dropdown-panel .p-dropdown-items .p-dropdown-item:hover {
+  background: #F1F5F9 !important;
+}
+
+.p-dropdown-panel .p-dropdown-items .p-dropdown-item.p-highlight {
+  background: #EFF6FF !important;
+  color: #2563EB !important;
+  font-weight: 500 !important;
+}
+
+/* =========================================================
+   PRIMEREACT – CALENDAR & DROPDOWN PANELS (Z-INDEX & BG FIX)
+   ========================================================= */
+.p-datepicker {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+  border-radius: 12px !important;
+  z-index: 9999 !important;
+  padding: 0.5rem !important;
+  font-family: var(--font-main) !important;
+}
+.p-datepicker table {
+  font-size: 0.875rem !important;
+  width: 100% !important;
+}
+.p-datepicker .p-datepicker-header {
+  background: transparent !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+  padding-bottom: 0.5rem !important;
+  margin-bottom: 0.5rem !important;
+  color: var(--text-primary) !important;
+  font-weight: 600 !important;
+}
+.p-datepicker .p-datepicker-calendar td {
+  padding: 0.25rem !important;
+}
+.p-datepicker .p-datepicker-calendar td > span {
+  width: 2rem !important;
+  height: 2rem !important;
+  border-radius: 0.375rem !important;
+  transition: all 0.2s;
+}
+.p-datepicker .p-datepicker-calendar td > span:hover {
+  background: #F1F5F9 !important;
+}
+.p-datepicker .p-datepicker-calendar td > span.p-highlight {
+  background: #2563EB !important;
+  color: white !important;
+}
+
+.p-dropdown-panel {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+  border-radius: 12px !important;
+  z-index: 9999 !important;
+  font-family: var(--font-main) !important;
+}
+.p-dropdown-panel .p-dropdown-items .p-dropdown-item {
+  font-size: 0.875rem !important;
+  padding: 0.6rem 1rem !important;
+  border-radius: 0.375rem !important;
+  margin: 2px 4px !important;
+  transition: background 0.1s ease;
+}
+.p-dropdown-panel .p-dropdown-items .p-dropdown-item:hover {
+  background: #F8FAFC !important;
+}
+
+/* =========================================================
+   PRIMEREACT – DIALOG
+   ========================================================= */
+.p-dialog {
+  border-radius: 0.75rem !important;
+  box-shadow: 0 20px 25px -5px rgba(0,0,0,0.08), 0 8px 10px -6px rgba(0,0,0,0.05) !important;
+  border: 1px solid #E2E8F0 !important;
+  background: white !important;
+  font-family: var(--font-main) !important;
+}
+
+.p-dialog .p-dialog-header {
+  background: white !important;
+  border-bottom: 1px solid #F1F5F9 !important;
+  padding: 1.25rem 1.5rem !important;
+  border-radius: 0.75rem 0.75rem 0 0 !important;
+}
+
+.p-dialog .p-dialog-header .p-dialog-title {
+  font-family: var(--font-main) !important;
+  font-weight: 600 !important;
+  font-size: 1rem !important;
+  color: var(--text-primary) !important;
+  letter-spacing: -0.01em !important;
+}
+
+.p-dialog .p-dialog-header-icons .p-dialog-header-icon {
+  width: 1.75rem !important;
+  height: 1.75rem !important;
+  border-radius: 0.375rem !important;
+  color: #64748B !important;
+}
+
+.p-dialog .p-dialog-header-icons .p-dialog-header-icon:enabled:hover {
+  background: #F1F5F9 !important;
+}
+
+.p-dialog .p-dialog-content {
+  padding: 1.5rem !important;
+  font-family: var(--font-main) !important;
+  font-size: 0.875rem !important;
+  color: var(--text-primary) !important;
+}
+
+/* =========================================================
+   PRIMEREACT – TAGS
+   ========================================================= */
+.p-tag {
+  font-family: var(--font-main) !important;
+  font-size: 0.7rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.025em !important;
+  text-transform: uppercase !important;
+  border-radius: 0.25rem !important;
+  padding: 0.2rem 0.5rem !important;
+}
+
+.p-tag.p-tag-success { background: #DCFCE7 !important; color: #15803D !important; }
+.p-tag.p-tag-warning { background: #FEF9C3 !important; color: #92400E !important; }
+.p-tag.p-tag-danger  { background: #FEE2E2 !important; color: #B91C1C !important; }
+.p-tag.p-tag-info    { background: #DBEAFE !important; color: #1D4ED8 !important; }
+
+/* =========================================================
+   PRIMEREACT – CONFIRM DIALOG
+   ========================================================= */
+.p-confirm-dialog .p-dialog-content {
+  padding: 1.5rem !important;
+}
+
+.p-confirm-dialog-message {
+  font-size: 0.9rem !important;
+  color: #374151 !important;
+  line-height: 1.6 !important;
+}
+
+/* =========================================================
+   PRIMEREACT – TOAST (Kept styled, refined)
+   ========================================================= */
+.p-toast {
+  width: 22rem !important;
+  z-index: 9999 !important;
+}
+
+.p-toast .p-toast-message {
+  border-radius: 0.75rem !important;
+  box-shadow: 0 10px 15px -3px rgba(0,0,0,0.07), 0 4px 6px -4px rgba(0,0,0,0.05) !important;
+  margin-bottom: 0.625rem !important;
+  overflow: hidden;
+  border: none !important;
+}
+
+.p-toast .p-toast-message .p-toast-message-content {
+  padding: 1rem 1.25rem !important;
+}
+
+.p-toast .p-toast-message .p-toast-summary {
+  font-weight: 600 !important;
+  font-size: 0.9rem !important;
+  letter-spacing: 0 !important;
+  color: white !important;
+}
+
+.p-toast .p-toast-message .p-toast-detail {
+  font-size: 0.8rem !important;
+  font-weight: 400 !important;
+  color: rgba(255,255,255,0.85) !important;
+  margin-top: 0.125rem !important;
+}
+
+.p-toast .p-toast-message.p-toast-message-success { background: #059669 !important; }
+.p-toast .p-toast-message.p-toast-message-error   { background: #DC2626 !important; }
+.p-toast .p-toast-message.p-toast-message-info    { background: #2563EB !important; }
+.p-toast .p-toast-message.p-toast-message-warn    { background: #D97706 !important; }
+
+/* =========================================================
+   IMAGE PREVIEW OVERLAY
+   ========================================================= */
+.p-image-preview-container img { cursor: zoom-in; }
+.p-image-mask { background: rgba(0,0,0,0.85) !important; }
+
+/* =========================================================
+   MISC LEGACY CLASSES (kept for backward compat, now no-op)
+   ========================================================= */
+.glass-card { background: white; border: 1px solid #E2E8F0; border-radius: 0.75rem; }
+.luxury-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748B;
+  margin-bottom: 0.375rem;
+  display: block;
+}
+.luxury-input {
+  border: 1px solid #CBD5E1;
+  border-radius: 0.375rem;
+  padding: 0.5625rem 0.75rem;
+  font-size: 0.875rem;
+}
