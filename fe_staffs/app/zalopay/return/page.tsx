@@ -152,9 +152,9 @@ function ReturnContent() {
                             <p className="font-black text-slate-800 text-sm">{departure || '—'}</p>
                         </div>
                         <div className="flex flex-col items-center gap-1">
-                            <div className="h-px w-12 bg-gradient-to-r from-blue-300 to-blue-500" />
+                            <div className="h-px w-12 bg-linear-to-r from-blue-300 to-blue-500" />
                             <div className="w-2 h-2 rounded-full bg-blue-500" />
-                            <div className="h-px w-12 bg-gradient-to-r from-blue-500 to-blue-300" />
+                            <div className="h-px w-12 bg-linear-to-r from-blue-500 to-blue-300" />
                         </div>
                         <div className="flex-1 text-center">
                             <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-widest mb-0.5">Ga đến</p>
@@ -264,7 +264,7 @@ function ReturnContent() {
 /* ─── Page wrapper ─────────────────────────────────────────────────────────── */
 export default function ZaloPayReturnPage() {
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50 flex flex-col items-center justify-center p-6">
+        <div className="min-h-screen bg-linear-to-br from-slate-50 via-blue-50/30 to-slate-50 flex flex-col items-center justify-center p-6">
             {/* Header bar */}
             <div className="fixed top-0 left-0 right-0 h-1"
                 style={{ background: 'linear-gradient(90deg,#0068FF,#00C2FF,#0068FF)' }} />

@@ -256,6 +256,11 @@ export default function TimeTicketPOS() {
             return;
         }
 
+        if (customerType === 'new' && !password) {
+            toast.current?.show({ severity: 'warn', summary: 'Thiếu thông tin', detail: 'Vui lòng nhập mật khẩu cho tài khoản đăng ký mới', life: 3000 });
+            return;
+        }
+
         // Tính lại amount vì totalAmount được declare ở bên dưới component
         const baseAmount = selectedPackage.price || 0;
         let discountValue = 0;
@@ -317,6 +322,11 @@ export default function TimeTicketPOS() {
     const executePurchase = async (methodId: number) => {
         if (!selectedPackage || !cccd || !fullName || !phone) {
             toast.current?.show({ severity: 'warn', summary: 'Thiếu thông tin', detail: 'Vui lòng hoàn tất hồ sơ khách hàng' });
+            return;
+        }
+
+        if (customerType === 'new' && !password) {
+            toast.current?.show({ severity: 'warn', summary: 'Thiếu thông tin', detail: 'Vui lòng nhập mật khẩu cho tài khoản đăng ký mới' });
             return;
         }
 
@@ -483,6 +493,7 @@ export default function TimeTicketPOS() {
                                     phone={phone} setPhone={setPhone}
                                     email={email} setEmail={setEmail}
                                     password={password} setPassword={setPassword}
+                                    customerType={customerType}
                                     frontImage={frontImage} backImage={backImage}
                                     avatarImage={avatarImage}
                                     onImageUpload={handleImageUpload}
@@ -635,7 +646,7 @@ export default function TimeTicketPOS() {
                 showHeader={false}
                 visible={showPromotionDialog}
                 onHide={() => setShowPromotionDialog(false)}
-                className="w-[500px] rounded-2xl"
+                className="w-125 rounded-2xl"
                 contentClassName="p-0 border-none shadow-2xl"
             >
                 <div className="p-8 bg-white">
@@ -644,7 +655,7 @@ export default function TimeTicketPOS() {
                         <button onClick={() => setShowPromotionDialog(false)} className="text-slate-300 hover:text-slate-600 transition-colors"><X size={20} /></button>
                     </div>
 
-                    <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-slate-200">
+                    <div className="space-y-3 max-h-100 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-slate-200">
                         {promotions.length === 0 ? (
                             <div className="py-10 text-center text-slate-400 font-medium">Hiện không có chương trình khuyến mãi nào</div>
                         ) : (
@@ -681,7 +692,7 @@ export default function TimeTicketPOS() {
                 showHeader={false}
                 visible={showPaymentDialog}
                 onHide={() => setShowPaymentDialog(false)}
-                className="w-[450px] rounded-2xl overflow-hidden"
+                className="w-112.5 rounded-2xl overflow-hidden"
                 contentClassName="p-0 border-none shadow-2xl"
             >
                 <div className="p-8 bg-white">
@@ -705,7 +716,7 @@ export default function TimeTicketPOS() {
                                             : 'border-slate-100 hover:border-indigo-600 hover:bg-indigo-50/20'
                                     }`}
                                 >
-                                    <div className={`w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                                    <div className={`w-12 h-12 rounded-lg flex items-center justify-center shrink-0 ${
                                         isZalo ? '' : 'bg-white border border-slate-100 text-slate-400 group-hover:text-indigo-600 transition-colors'
                                     }`} style={isZalo ? { background: 'linear-gradient(135deg,#0068FF,#00B4FF)' } : undefined}>
                                         {isZalo
@@ -748,7 +759,7 @@ export default function TimeTicketPOS() {
                     <p className="text-sm text-slate-400 mb-10 font-medium">Vé đã được kích hoạt và gán cho hồ sơ hành khách</p>
 
                     {/* Minimalist Professional Digital Ticket Card */}
-                    <div className="w-full max-w-[600px] bg-[#0a0a0a] rounded-3xl p-10 text-white mb-8 border border-slate-800 shadow-xl">
+                    <div className="w-full max-w-150 bg-[#0a0a0a] rounded-3xl p-10 text-white mb-8 border border-slate-800 shadow-xl">
                         <div className="flex justify-between items-start mb-8 pb-8 border-b border-white/10">
                             <div className="flex items-center gap-5">
                                 {avatarImage && (
@@ -789,7 +800,7 @@ export default function TimeTicketPOS() {
                         </div>
                     </div>
 
-                    <div className="flex gap-4 w-full max-w-[600px]">
+                    <div className="flex gap-4 w-full max-w-150">
                         <button
                             onClick={() => window.print()}
                             className="flex-1 h-14 rounded-2xl bg-black text-white font-bold text-sm uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-slate-800 transition-all shadow-lg"

@@ -283,9 +283,13 @@ export default function TicketTypesPage() {
                         </div>
                     )} style={{ width: '15%' }} />
                     <Column header="THAO TÁC" body={(r) => (
-                        <div className="flex gap-2 pr-10">
-                            <Button icon={<Pencil size={14} />} onClick={() => openEdit(r)} text className="w-9 h-9 bg-slate-50 text-slate-400 hover:text-indigo-600 rounded-xl" />
-                            <Button icon={<Trash2 size={14} />} onClick={() => handleDelete(r)} text className="w-9 h-9 bg-slate-50 text-slate-400 hover:text-rose-600 rounded-xl" />
+                        <div className="flex gap-2 pr-10 justify-end">
+                            <button onClick={() => openEdit(r)} className="w-9 h-9 flex items-center justify-center bg-slate-50 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-colors">
+                                <Pencil size={16} />
+                            </button>
+                            <button onClick={() => handleDelete(r)} className="w-9 h-9 flex items-center justify-center bg-slate-50 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors">
+                                <Trash2 size={16} />
+                            </button>
                         </div>
                     )} style={{ width: '15%' }} className="text-right" />
                 </DataTable>

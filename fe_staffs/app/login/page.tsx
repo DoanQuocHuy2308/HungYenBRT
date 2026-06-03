@@ -47,13 +47,13 @@ export default function StaffLoginScreen() {
     <PageWrapper showNav={false} requireAuth={false}>
       <Toast ref={toast} position="top-right" />
       
-      <div className="flex min-h-screen -mx-8 -my-0 overflow-hidden">
+      <div className="flex min-h-screen -mx-8 my-0 overflow-hidden">
         {/* Branding (Left) */}
         <BrandingSection />
 
         {/* Auth Form (Right) */}
         <div className="flex-1 flex flex-col justify-center px-8 sm:px-20 lg:px-28 bg-white relative">
-          <div className="absolute top-0 right-0 w-full h-1 bg-gradient-to-r from-transparent via-[#5D4037]/40 to-transparent"></div>
+          <div className="absolute top-0 right-0 w-full h-1 bg-linear-to-r from-transparent via-[#5D4037]/40 to-transparent"></div>
           <LoginForm onSuccess={handleSuccess} onError={handleError} />
         </div>
       </div>

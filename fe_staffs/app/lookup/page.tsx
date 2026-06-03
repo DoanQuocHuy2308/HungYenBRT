@@ -51,7 +51,7 @@ export default function LookupPage() {
       >
          <div className="flex bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden h-[calc(100vh-170px)]">
             {/* Left: Search & Results List */}
-            <div className="w-full md:w-[400px] lg:w-[450px] border-r border-slate-200 relative flex flex-col h-full bg-slate-50">
+            <div className="w-full md:w-100 lg:w-112.5 border-r border-slate-200 relative flex flex-col h-full bg-slate-50">
                {loading && (
                   <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm z-10">
                      <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div>

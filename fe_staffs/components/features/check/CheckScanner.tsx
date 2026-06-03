@@ -14,6 +14,7 @@ interface CheckScannerProps {
     setManualCode: (v: string) => void;
     isScanning: boolean;
     recentCodes: string[];
+    scanState: "idle" | "scanning" | "found" | "not-found";
 }
 
 export const CheckScanner: React.FC<CheckScannerProps> = ({
@@ -23,7 +24,8 @@ export const CheckScanner: React.FC<CheckScannerProps> = ({
     manualCode,
     setManualCode,
     isScanning,
-    recentCodes
+    recentCodes,
+    scanState
 }) => {
     return (
         <div className="flex flex-col h-full animate-in fade-in slide-in-from-left-4 duration-700">
@@ -32,11 +34,19 @@ export const CheckScanner: React.FC<CheckScannerProps> = ({
                     <div className="absolute inset-0 overflow-hidden mix-blend-normal opacity-90">
                         <Scanner
                             onScan={(result) => {
-                                if (result.length > 0 && !isScanning) {
+                                if (result.length > 0 && scanState === "idle") {
                                     onSimulateScan(result[0].rawValue);
                                 }
                             }}
                             formats={['qr_code']}
+                            scanDelay={100}
+                            constraints={{
+                                facingMode: 'environment',
+                                width: { ideal: 4096 },
+                                height: { ideal: 2160 },
+                                frameRate: { ideal: 60, min: 30 },
+                                advanced: [{ focusMode: 'continuous' } as any]
+                            }}
                             styles={{ container: { width: '100%', height: '100%' }, video: { objectFit: 'cover' } }}
                         />
                     </div>

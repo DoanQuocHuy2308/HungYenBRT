@@ -77,6 +77,16 @@ export default function CheckTicketPOS() {
       setManualCode("");
    };
 
+   // Tự động reset trạng thái sau khi quét xong (thành công hoặc thất bại) để nhân viên sẵn sàng quét vé tiếp theo
+   useEffect(() => {
+      if (scanState === "found" || scanState === "not-found") {
+         const timer = setTimeout(() => {
+            resetScan();
+         }, 10000); // Đợi 10 giây hiển thị thông tin vé rồi tự động reset
+         return () => clearTimeout(timer);
+      }
+   }, [scanState]);
+
    return (
       <PageWrapper 
          title="Xác Thực Vé Cửa Soát" 
@@ -84,7 +94,7 @@ export default function CheckTicketPOS() {
       >
          <Toast ref={toast} position="top-right" />
 
-         <div className="flex bg-white rounded-[40px] border border-slate-100 shadow-2xl shadow-[#3E2723]/5 overflow-hidden min-h-[750px] -mx-4 lg:-mx-8">
+         <div className="flex bg-white rounded-[40px] border border-slate-100 shadow-2xl shadow-[#3E2723]/5 overflow-hidden min-h-187.5 -mx-4 lg:-mx-8">
             {/* Left: Interactive Scanner Section */}
             <div className="flex-[0.55] p-10 overflow-y-auto w-full bg-[#FDFCFB]/30 border-r border-slate-50">
                <CheckScanner 
@@ -95,11 +105,12 @@ export default function CheckTicketPOS() {
                     setManualCode={setManualCode}
                     isScanning={scanState === "scanning"}
                     recentCodes={[]}
+                    scanState={scanState}
                />
             </div>
 
             {/* Right: Validation Result Panel */}
-            <div className="flex-[0.45] bg-white overflow-y-auto max-h-[750px]">
+            <div className="flex-[0.45] bg-white overflow-y-auto max-h-187.5">
                <ValidationDetailPanel 
                     scanState={scanState}
                     ticketData={ticketData}

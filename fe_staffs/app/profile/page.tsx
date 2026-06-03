@@ -186,8 +186,8 @@ export default function ProfilePage() {
         
         {/* Left Col: Avatar & Status */}
         <div className="lg:col-span-1 space-y-6">
-          <div className="bg-white rounded-[32px] p-8 border border-slate-100 shadow-xl shadow-[#3E2723]/5 flex flex-col items-center text-center relative overflow-hidden">
-             <div className="absolute top-0 inset-x-0 h-32 bg-gradient-to-br from-[#3E2723] to-[#5D4037]"></div>
+          <div className="bg-white rounded-4xl p-8 border border-slate-100 shadow-xl shadow-[#3E2723]/5 flex flex-col items-center text-center relative overflow-hidden">
+             <div className="absolute top-0 inset-x-0 h-32 bg-linear-to-br from-[#3E2723] to-[#5D4037]"></div>
              
              <div className="relative mt-8 mb-4">
                 <div className="w-32 h-32 rounded-full border-4 border-white shadow-xl overflow-hidden bg-white relative group">
@@ -244,7 +244,7 @@ export default function ProfilePage() {
 
         {/* Right Col: Edit Form */}
         <div className="lg:col-span-2">
-           <div className="bg-white rounded-[32px] p-8 border border-slate-100 shadow-xl shadow-[#3E2723]/5 mb-8">
+           <div className="bg-white rounded-4xl p-8 border border-slate-100 shadow-xl shadow-[#3E2723]/5 mb-8">
               <div className="flex items-center justify-between mb-8 pb-6 border-b border-slate-100">
                  <h3 className="text-xl font-black text-slate-800 tracking-tight">Thông tin chi tiết</h3>
                  <button 
@@ -340,7 +340,7 @@ export default function ProfilePage() {
                        <textarea 
                           value={u.address || ''} 
                           readOnly
-                          className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border-none rounded-2xl text-sm font-semibold text-slate-500 cursor-not-allowed outline-none resize-none min-h-[100px]"
+                          className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border-none rounded-2xl text-sm font-semibold text-slate-500 cursor-not-allowed outline-none resize-none min-h-25"
                        />
                     </div>
                  </div>
@@ -349,7 +349,7 @@ export default function ProfilePage() {
            </div>
 
            {/* Change Password Card */}
-           <div className="bg-white rounded-[32px] p-8 border border-slate-100 shadow-xl shadow-[#3E2723]/5">
+           <div className="bg-white rounded-4xl p-8 border border-slate-100 shadow-xl shadow-[#3E2723]/5">
               <div className="flex items-center justify-between mb-8 pb-6 border-b border-slate-100">
                  <h3 className="text-xl font-black text-slate-800 tracking-tight">Đổi mật khẩu</h3>
                  <button 

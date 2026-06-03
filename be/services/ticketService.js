@@ -137,6 +137,8 @@ class TicketService {
                 const bcrypt = require('bcryptjs');
                 const salt = await bcrypt.genSalt(10);
                 userData.password = await bcrypt.hash(userData.password, salt);
+            } else {
+                delete userData.password;
             }
 
             // Xử lý email rỗng

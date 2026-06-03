@@ -27,6 +27,7 @@ interface RegistrationFormProps {
     setEmail: (v: string) => void;
     password: string;
     setPassword: (v: string) => void;
+    customerType?: 'new' | 'old';
     frontImage: string | null;
     backImage: string | null;
     avatarImage: string | null;
@@ -40,7 +41,7 @@ interface RegistrationFormProps {
 export const RegistrationForm: React.FC<RegistrationFormProps> = ({
     cccd, setCccd, fullName, setFullName, dob, setDob, issueDate, setIssueDate,
     gender, setGender, address, setAddress, phone, setPhone,
-    email, setEmail, password, setPassword, frontImage, backImage, avatarImage, onImageUpload,
+    email, setEmail, password, setPassword, customerType, frontImage, backImage, avatarImage, onImageUpload,
     onAvatarUpload, onScan, scanned, isScanning
 }) => {
     const frontInputRef = useRef<HTMLInputElement>(null);
@@ -156,13 +157,15 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
                             </button>
                         </div>
                     </div>
-                    <div className="flex flex-col gap-1.5">
-                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Mật khẩu tài khoản <span className="text-rose-500">*</span></label>
-                        <div className="relative">
-                            <ShieldCheck className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300" size={16} />
-                            <InputText type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Tạo mật khẩu đăng ký" className="w-full pl-10 h-11 rounded-xl border-slate-200 focus:border-indigo-500 text-sm font-bold" />
+                    {customerType !== 'old' && (
+                        <div className="flex flex-col gap-1.5">
+                            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Mật khẩu tài khoản <span className="text-rose-500">*</span></label>
+                            <div className="relative">
+                                <ShieldCheck className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300" size={16} />
+                                <InputText type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Tạo mật khẩu đăng ký" className="w-full pl-10 h-11 rounded-xl border-slate-200 focus:border-indigo-500 text-sm font-bold" />
+                            </div>
                         </div>
-                    </div>
+                    )}
 
                     {/* Row 6: Email */}
                     <div className="col-span-2 flex flex-col gap-1.5">

@@ -105,9 +105,12 @@ class UserController {
         try {
             const deleted = await UserService.deleteUser(req.params.id);
             if (!deleted) return res.status(404).json({ success: false, message: 'Không tìm thấy người dùng' });
-            res.status(200).json({ success: true, message: 'Đã xóa tài khoản thành công' });
+            res.status(200).json({ 
+                success: true, 
+                message: 'Đã xóa tài khoản và toàn bộ dữ liệu liên quan (vé, lịch sử quét, đăng ký giảm giá, ảnh CCCD) thành công' 
+            });
         } catch (error) {
-            res.status(500).json({ success: false, message: error.message });
+            res.status(500).json({ success: false, message: 'Lỗi khi xóa người dùng: ' + error.message });
         }
     }
 

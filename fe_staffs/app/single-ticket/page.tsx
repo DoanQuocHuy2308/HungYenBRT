@@ -84,7 +84,7 @@ export default function SingleTicketPOS() {
                         if (priceRes.success) setPrices(priceRes.data);
                     }
                  }
-                 const guest = userRes.data?.find((u: any) => (u.id_Role || u.Id_Role) === 3);
+                 const guest = userRes.data?.find((u: any) => u.phone === '0000000000' && (u.id_Role || u.Id_Role) === 3);
                  if (guest) setIdGuest(guest.id || guest.Id);
 
                  const staffData = localStorage.getItem('staff_data');
@@ -288,11 +288,11 @@ export default function SingleTicketPOS() {
                         >
                             <div className="flex items-center gap-3">
                                 {isZalo ? (
-                                    <div className="w-10 h-10 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center flex-shrink-0">
+                                    <div className="w-10 h-10 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0">
                                         <span className="text-blue-600 font-bold text-xs">ZLP</span>
                                     </div>
                                 ) : (
-                                    <div className="w-10 h-10 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-500 flex-shrink-0 group-hover:text-slate-800">
+                                    <div className="w-10 h-10 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-500 shrink-0 group-hover:text-slate-800">
                                         {isCash ? <Banknote size={20} /> : <QrCode size={20} />}
                                     </div>
                                 )}
@@ -351,7 +351,7 @@ export default function SingleTicketPOS() {
                         label="Xác nhận đã nhận tiền" 
                         onClick={() => executePurchase(paymentMethod.id)} 
                         loading={isPurchasing}
-                        className="flex-[2] bg-slate-900 text-white font-semibold text-sm py-3 rounded-lg hover:bg-slate-800 transition-colors"
+                        className="flex-2 bg-slate-900 text-white font-semibold text-sm py-3 rounded-lg hover:bg-slate-800 transition-colors"
                     />
                 </div>
             </Dialog>

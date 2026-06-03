@@ -205,7 +205,7 @@ class AuthService {
             const age = AuthService._calculateAge(userData.birthday);
             if (age !== null && age >= 60) {
                 try {
-                    const ELDERLY_TICKET_TYPE_ID = 4; // "Vé Người Cao Tuổi" (Id_Category=3/Ưu Đãi)
+                    const ELDERLY_TICKET_TYPE_ID = 23; 
                     const ticketType = await db.ticket_types.findByPk(ELDERLY_TICKET_TYPE_ID);
                     if (ticketType && ticketType.is_active) {
                         // Tạo đơn hàng với tổng tiền = 0

@@ -153,6 +153,29 @@ class TicketScanService {
                 return { success: false, code: 'TICKET_EXPIRED', message: 'Vé thời gian của bạn đã hết hạn sử dụng.' };
             }
 
+            // Kiểm tra Cooldown 30s ở cổng vào
+            if (direction === 'ENTRY') {
+                const lastEntryLog = await db.ticket_logs.findOne({
+                    where: {
+                        Id_Ticket: ticketDetail.Id,
+                        scan_direction: 'ENTRY',
+                        status: 'valid'
+                    },
+                    order: [['scan_time', 'DESC']]
+                });
+                
+                if (lastEntryLog) {
+                    const diffSeconds = (new Date() - new Date(lastEntryLog.scan_time)) / 1000;
+                    if (diffSeconds < 30) {
+                        return { 
+                            success: false, 
+                            code: 'COOLDOWN_ACTIVE', 
+                            message: 'Bạn đã vào, yêu cầu sau 30s sẽ được quét lại' 
+                        };
+                    }
+                }
+            }
+
             // Yêu cầu xác thực khuôn mặt (Chỉ yêu cầu khi đi VÀO CỔNG)
             if (ticketType.requiresFace && direction === 'ENTRY') {
                 if (!faceImagePath) {

@@ -141,8 +141,81 @@ class UserService {
     static async deleteUser(id) {
         const user = await User.findByPk(id);
         if (!user) return null;
-        await user.destroy();
-        return true;
+
+        const { Op } = require('sequelize');
+        const transaction = await db.sequelize.transaction();
+        try {
+            // 1. Lấy tất cả tickets (đơn hàng) của user
+            const userTickets = await db.tickets.findAll({
+                where: { Id_User: id },
+                attributes: ['Id'],
+                transaction
+            });
+            const ticketIds = userTickets.map(t => t.Id);
+
+            if (ticketIds.length > 0) {
+                // 2. Lấy tất cả ticket_details (FK: Id_Order → tickets.Id)
+                const ticketDetails = await db.ticket_details.findAll({
+                    where: { Id_Order: { [Op.in]: ticketIds } },
+                    attributes: ['Id'],
+                    transaction
+                });
+                const detailIds = ticketDetails.map(d => d.Id);
+
+                if (detailIds.length > 0) {
+                    // 3. Xóa ticket_logs (FK: Id_Ticket → ticket_details.Id)
+                    await db.ticket_logs.destroy({
+                        where: { Id_Ticket: { [Op.in]: detailIds } },
+                        transaction
+                    });
+
+                    // 4. Xóa ticket_details
+                    await db.ticket_details.destroy({
+                        where: { Id: { [Op.in]: detailIds } },
+                        transaction
+                    });
+                }
+
+                // 5. Xóa tickets
+                await db.tickets.destroy({
+                    where: { Id_User: id },
+                    transaction
+                });
+            }
+
+            // 6. Xóa discount_registrations
+            await db.discount_registrations.destroy({
+                where: { id_User: id },
+                transaction
+            });
+
+            // 7. Xóa files vật lý (avatar, cccd_front, cccd_back)
+            const filesToDelete = [user.avatar, user.cccd_front, user.cccd_back].filter(Boolean);
+            for (const filePath of filesToDelete) {
+                try {
+                    const absPath = filePath.startsWith('/')
+                        ? path.join(__dirname, '../', filePath)
+                        : path.resolve(filePath);
+                    if (fs.existsSync(absPath)) {
+                        fs.unlinkSync(absPath);
+                        console.log(`[DeleteUser] Đã xóa file: ${absPath}`);
+                    }
+                } catch (e) {
+                    console.warn(`[DeleteUser] Không thể xóa file ${filePath}:`, e.message);
+                }
+            }
+
+            // 8. Xóa user
+            await user.destroy({ transaction });
+
+            await transaction.commit();
+            console.log(`[DeleteUser] ✅ Đã xóa toàn bộ dữ liệu của user ${id}`);
+            return true;
+        } catch (err) {
+            await transaction.rollback();
+            console.error(`[DeleteUser] ❌ Lỗi khi xóa user ${id}:`, err.message);
+            throw err;
+        }
     }
 
     // Thống kê: tổng khách hàng, tổng nhân viên, ...

@@ -1,7 +1,7 @@
 "use client";
 
-import React from 'react';
-import { Ticket, CalendarDays, Clock, ShieldCheck } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Ticket, CalendarDays, Clock, ShieldCheck, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface TicketPackage {
     id: string;
@@ -17,20 +17,64 @@ interface PackageSelectionGridProps {
     onSelect: (pkg: TicketPackage) => void;
 }
 
+const ITEMS_PER_PAGE = 6;
+
 export const PackageSelectionGrid: React.FC<PackageSelectionGridProps> = ({
     packages,
     selectedPackageId,
     onSelect
 }) => {
+    const [currentPage, setCurrentPage] = useState(1);
+
+    // Reset page when packages change
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [packages]);
+
+    const totalPages = Math.ceil(packages.length / ITEMS_PER_PAGE);
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const displayedPackages = packages.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
+    const handlePrev = () => {
+        if (currentPage > 1) setCurrentPage(p => p - 1);
+    };
+
+    const handleNext = () => {
+        if (currentPage < totalPages) setCurrentPage(p => p + 1);
+    };
+
     return (
         <div className="flex flex-col h-full animate-in fade-in duration-500">
-            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100">
-                <Ticket size={20} className="text-indigo-600" />
-                <h2 className="text-xl font-bold text-slate-800 uppercase tracking-tight">Lựa chọn gói cước</h2>
+            <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
+                <div className="flex items-center gap-3">
+                    <Ticket size={20} className="text-indigo-600" />
+                    <h2 className="text-xl font-bold text-slate-800 uppercase tracking-tight">Lựa chọn gói cước</h2>
+                </div>
+                {totalPages > 1 && (
+                    <div className="flex items-center gap-2">
+                        <button 
+                            onClick={handlePrev} 
+                            disabled={currentPage === 1}
+                            className="w-8 h-8 flex items-center justify-center rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+                        >
+                            <ChevronLeft size={16} />
+                        </button>
+                        <span className="text-xs font-bold text-slate-500 min-w-[40px] text-center">
+                            {currentPage} / {totalPages}
+                        </span>
+                        <button 
+                            onClick={handleNext} 
+                            disabled={currentPage === totalPages}
+                            className="w-8 h-8 flex items-center justify-center rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+                        >
+                            <ChevronRight size={16} />
+                        </button>
+                    </div>
+                )}
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-                {packages.map((pkg) => {
+            <div className="grid grid-cols-2 gap-4 flex-1 content-start">
+                {displayedPackages.map((pkg) => {
                     const isSelected = selectedPackageId === pkg.id;
                     const isPromo = pkg.categoryId === 3;
 
@@ -89,6 +133,8 @@ export const PackageSelectionGrid: React.FC<PackageSelectionGridProps> = ({
                     );
                 })}
             </div>
+            
+            {/* Pagination Controls at Bottom (Optional, using top header instead for cleaner UI) */}
         </div>
     );
 };

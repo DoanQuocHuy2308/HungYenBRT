@@ -267,6 +267,8 @@ export default function TicketLogsPage() {
                                 { label: 'Ra trạm',  value: 'EXIT' },
                                 { label: 'Soát vé',  value: 'CHECK' },
                             ]}
+                            optionLabel="label"
+                            optionValue="value"
                             className="text-sm w-36"
                             pt={{ root: { className: 'border-slate-200 rounded-lg h-9 flex items-center' } }}
                         />
@@ -280,6 +282,8 @@ export default function TicketLogsPage() {
                                 { label: 'Hết hạn',        value: 'expired' },
                                 { label: 'Vượt vùng',      value: 'over_zone' },
                             ]}
+                            optionLabel="label"
+                            optionValue="value"
                             className="text-sm w-40"
                             pt={{ root: { className: 'border-slate-200 rounded-lg h-9 flex items-center' } }}
                         />

@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Dialog } from 'primereact/dialog';
 import {
     CheckCircle2, XCircle, Loader2, Smartphone,
-    Clock, RefreshCw, X, Copy, Check, ExternalLink, Shield, QrCode
+    Clock, RefreshCw, X, Copy, Check, ExternalLink, Shield, QrCode, AlertTriangle, CheckCheck
 } from 'lucide-react';
 
 interface ZaloPayDialogProps {
@@ -22,18 +22,19 @@ interface ZaloPayDialogProps {
     onError?: (message: string) => void;
 }
 
-type Status = 'PENDING' | 'PAID' | 'FAILED' | 'TIMEOUT';
+type Status = 'PENDING' | 'PAID' | 'FAILED' | 'TIMEOUT' | 'CONFIRMING';
 
-const POLL_MS    = 3000;          // polling mỗi 3 giây
+const POLL_MS    = 3000;           // polling mỗi 3 giây
 const TIMEOUT_MS = 10 * 60 * 1000; // hết hạn sau 10 phút
 
 export function ZaloPayDialog({
     visible, onHide, orderId, preOrderData, onSuccess, onError,
 }: ZaloPayDialogProps) {
-    const [status, setStatus]     = useState<Status>('PENDING');
-    const [elapsed, setElapsed]   = useState(0);
-    const [copied, setCopied]     = useState(false);
-    const [errMsg, setErrMsg]     = useState('');
+    const [status, setStatus]         = useState<Status>('PENDING');
+    const [elapsed, setElapsed]       = useState(0);
+    const [copied, setCopied]         = useState(false);
+    const [errMsg, setErrMsg]         = useState('');
+    const [confirmLoading, setConfirmLoading] = useState(false);
 
     const pollRef  = useRef<ReturnType<typeof setInterval> | null>(null);
     const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -67,6 +68,7 @@ export function ZaloPayDialog({
         setStatus('PENDING');
         setElapsed(0);
         setErrMsg('');
+        setConfirmLoading(false);
         startRef.current = Date.now();
 
         // Bắt đầu polling
@@ -84,6 +86,48 @@ export function ZaloPayDialog({
 
         return () => stopAll();
     }, [visible, orderId]); // eslint-disable-line
+
+    /**
+     * Nhân viên bấm "Xác nhận đã thanh toán" khi thấy trừ tiền thành công trên app ZaloPay
+     * nhưng callback chưa tới (thường xảy ra trong môi trường localhost/sandbox).
+     * Backend sẽ chủ động query ZaloPay API để kiểm tra và xuất vé.
+     */
+    const handleManualConfirm = async () => {
+        setConfirmLoading(true);
+        setStatus('CONFIRMING');
+        stopAll();
+        try {
+            // Trước tiên poll lại một lần
+            const r = await fetch(`http://localhost:3000/zalopay/query/${orderId}`);
+            const d = await r.json();
+            if (d.success && d.status === 'PAID') {
+                setStatus('PAID');
+                setTimeout(() => { onSuccess(d.ticket); onHide(); }, 1500);
+                return;
+            }
+
+            // Gọi force-confirm → backend retry query ZaloPay 3 lần
+            const r2 = await fetch(`http://localhost:3000/zalopay/force-confirm/${orderId}`, {
+                method: 'POST',
+            });
+            const d2 = await r2.json();
+            if (d2.success) {
+                setStatus('PAID');
+                setTimeout(() => { onSuccess(d2.ticket); onHide(); }, 1500);
+            } else {
+                // Hiển thị tip từ backend nếu có
+                const msg = d2.tip || d2.message || 'ZaloPay chưa xác nhận giao dịch. Vui lòng thử lại.';
+                setErrMsg(msg);
+                setStatus('FAILED');
+                onError?.(msg);
+            }
+        } catch (err: any) {
+            setErrMsg('Lỗi kết nối máy chủ: ' + err.message);
+            setStatus('FAILED');
+        } finally {
+            setConfirmLoading(false);
+        }
+    };
 
     // Tính thời gian còn lại
     const remainSec = Math.max(0, TIMEOUT_MS / 1000 - elapsed);
@@ -131,8 +175,8 @@ export function ZaloPayDialog({
                             <span className="text-white font-black text-[11px]">ZLP</span>
                         </div>
                         <div>
-                            <p className="text-white font-black text-sm">ZaloPay QC Sandbox</p>
-                            <p className="text-blue-200 text-[10px] font-semibold">Dùng Devtool để giả lập thanh toán</p>
+                            <p className="text-white font-black text-sm">ZaloPay Sandbox</p>
+                            <p className="text-blue-200 text-[10px] font-semibold">Quét QR hoặc xác nhận thủ công</p>
                         </div>
                     </div>
                     <button onClick={() => { stopAll(); onHide(); }}
@@ -156,7 +200,6 @@ export function ZaloPayDialog({
                 {/* ── PENDING ─────────────────────────────────────────────── */}
                 {status === 'PENDING' && (
                     <div className="px-5 py-5 space-y-4">
-                        {/* Số tiền — lấy từ query param nếu có, dialog không nhận amount trực tiếp */}
                         {/* QR Code */}
                         <div className="flex flex-col items-center gap-3">
                             <div className="relative">
@@ -191,22 +234,34 @@ export function ZaloPayDialog({
                             </div>
                         </div>
 
-                        {/* Hướng dẫn sandbox */}
-                        <div className="bg-amber-50 rounded-xl p-3 flex gap-2.5 border border-amber-100">
-                            <Smartphone size={14} className="text-amber-500 flex-shrink-0 mt-0.5" />
-                            <p className="text-xs text-amber-700 font-medium leading-relaxed">
-                                <strong>Sandbox:</strong> Mở <strong>ZaloPay Devtool</strong> → mô phỏng thanh toán thành công để kích hoạt callback tự động.
-                            </p>
-                        </div>
-
                         {/* Nút mở devtool */}
                         {openUrl && (
                             <a href={openUrl} target="_blank" rel="noopener noreferrer"
-                                className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-sm font-bold text-white transition-all active:scale-95 hover:opacity-90"
+                                className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-sm font-bold text-white transition-all active:scale-95 hover:opacity-90"
                                 style={{ background: 'linear-gradient(135deg,#0068FF,#00B4FF)' }}>
-                                <ExternalLink size={14} /> Mở trang thanh toán (devtool)
+                                <ExternalLink size={14} /> Mở trang thanh toán ZaloPay
                             </a>
                         )}
+
+                        {/* ── NÚT XÁC NHẬN THỦ CÔNG ── */}
+                        <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 space-y-2.5">
+                            <div className="flex items-start gap-2">
+                                <AlertTriangle size={14} className="text-amber-500 flex-shrink-0 mt-0.5" />
+                                <p className="text-xs text-amber-700 font-medium leading-relaxed">
+                                    Nếu <strong>ZaloPay đã trừ tiền</strong> nhưng hệ thống chưa cập nhật (thường xảy ra ở môi trường sandbox/localhost), hãy bấm <strong>Xác nhận đã thanh toán</strong>.
+                                </p>
+                            </div>
+                            <button
+                                onClick={handleManualConfirm}
+                                disabled={confirmLoading}
+                                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold text-amber-800 bg-amber-100 hover:bg-amber-200 border border-amber-300 transition-all active:scale-95 disabled:opacity-50"
+                            >
+                                {confirmLoading
+                                    ? <><Loader2 size={14} className="animate-spin" /> Đang kiểm tra...</>
+                                    : <><CheckCheck size={14} /> Xác nhận đã thanh toán</>
+                                }
+                            </button>
+                        </div>
 
                         {/* Timer */}
                         <div className="space-y-1.5">
@@ -225,6 +280,19 @@ export function ZaloPayDialog({
 
                         <div className="flex items-center justify-center gap-1.5 text-[10px] text-slate-300">
                             <Shield size={10} /> SSL 256-bit · Sandbox ZaloPay QC
+                        </div>
+                    </div>
+                )}
+
+                {/* ── CONFIRMING ──────────────────────────────────────────── */}
+                {status === 'CONFIRMING' && (
+                    <div className="flex flex-col items-center py-12 gap-4 px-5">
+                        <div className="w-20 h-20 rounded-full bg-blue-50 border-4 border-blue-200 flex items-center justify-center">
+                            <Loader2 size={36} className="text-blue-500 animate-spin" />
+                        </div>
+                        <div className="text-center">
+                            <h4 className="text-lg font-black text-slate-800 mb-1">Đang kiểm tra giao dịch...</h4>
+                            <p className="text-sm text-slate-400">Đang truy vấn ZaloPay API để xác nhận</p>
                         </div>
                     </div>
                 )}

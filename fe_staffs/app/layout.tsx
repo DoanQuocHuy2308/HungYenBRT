@@ -2,9 +2,6 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 
-// PrimeReact Styles
-import "primereact/resources/themes/lara-light-amber/theme.css";
-
 import AppProvider from "./prime-provider";
 
 const inter = Inter({ subsets: ["latin"] });

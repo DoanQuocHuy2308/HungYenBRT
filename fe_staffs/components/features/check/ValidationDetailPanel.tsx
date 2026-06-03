@@ -85,7 +85,7 @@ export const ValidationDetailPanel: React.FC<ValidationDetailPanelProps> = ({
                         `}>
                             {['active', 'unused', 'issued'].includes(ticketData.status) ? <CheckCircle size={32} /> : <XCircle size={32} />}
                         </div>
-                        <div>
+                        <div className="min-w-0 flex-1">
                             <h3 className={`font-bold text-xl mb-1
                                 ${['active', 'unused', 'issued'].includes(ticketData.status) ? 'text-emerald-700' : 'text-red-700'}
                             `}>
@@ -94,11 +94,11 @@ export const ValidationDetailPanel: React.FC<ValidationDetailPanelProps> = ({
                                  ticketData.status === 'issued' ? "Vé mới cấp" :
                                  ticketData.status === 'used' ? "Đã sử dụng hết" : "Chứng chỉ Hết hạn"}
                             </h3>
-                            <div className={`flex items-center gap-2 text-sm font-medium
+                            <div className={`flex items-start gap-2 text-sm font-medium min-w-0
                                 ${['active', 'unused', 'issued'].includes(ticketData.status) ? 'text-emerald-600' : 'text-red-600'}
                             `}>
-                                <ScanLine size={16} />
-                                <span>ID: {ticketData.code}</span>
+                                <ScanLine size={16} className="flex-shrink-0 mt-0.5" />
+                                <span className="break-all font-mono text-xs">ID: {ticketData.code}</span>
                             </div>
                         </div>
                     </div>

@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@import "primereact/resources/themes/lara-light-amber/theme.css";
+
 
 @layer base {
   :root {

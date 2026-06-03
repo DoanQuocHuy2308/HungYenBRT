@@ -36,7 +36,7 @@ const PALETTE = ['#6366f1', '#0ea5e9', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6
 
 // ── Skeleton ──────────────────────────────────────────────────────────────────
 const Skeleton = ({ className = '', style }: { className?: string; style?: React.CSSProperties }) => (
-  <div className={`bg-gradient-to-r from-slate-100 via-slate-50 to-slate-100 animate-pulse rounded-xl ${className}`} style={style} />
+  <div className={`bg-linear-to-r from-slate-100 via-slate-50 to-slate-100 animate-pulse rounded-xl ${className}`} style={style} />
 );
 
 // ── KPI Card ─────────────────────────────────────────────────────────────────
@@ -74,7 +74,7 @@ function KPICard({ label, value, sub, icon: Icon, color, loading }: any) {
 // ── Revenue Bar Chart ─────────────────────────────────────────────────────────
 function RevenueChart({ data, loading }: { data: any[]; loading: boolean }) {
   if (loading) return (
-    <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm h-[340px] flex flex-col gap-4">
+    <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm h-85 flex flex-col gap-4">
       <Skeleton className="h-6 w-48" />
       <div className="flex-1 flex items-end gap-3">
         {Array(7).fill(0).map((_, i) => (
@@ -99,7 +99,7 @@ function RevenueChart({ data, loading }: { data: any[]; loading: boolean }) {
           <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-sky-400 inline-block" /> Vé thời gian</span>
         </div>
       </div>
-      <div className="flex items-end gap-2 h-[200px] relative">
+      <div className="flex items-end gap-2 h-50 relative">
         <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
           {[100, 75, 50, 25, 0].map(p => (
             <div key={p} className="flex items-center gap-2">
@@ -194,11 +194,11 @@ function TicketTypeChart({ data, loading }: { data: any[]; loading: boolean }) {
             const color = PALETTE[i] || '#94a3b8';
             return (
               <div key={i} className="flex items-center gap-3 group hover:bg-slate-50 rounded-xl p-2 -mx-2 transition-colors cursor-default">
-                <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
+                <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: color }} />
                 <div className="flex-1 min-w-0">
                   <div className="flex justify-between items-center mb-1">
                     <span className="text-sm font-medium text-slate-700 truncate">{t.name}</span>
-                    <span className="text-xs font-bold text-slate-600 ml-2 flex-shrink-0">{t.count} vé · {pct}%</span>
+                    <span className="text-xs font-bold text-slate-600 ml-2 shrink-0">{t.count} vé · {pct}%</span>
                   </div>
                   <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
                     <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, backgroundColor: color }} />
@@ -230,10 +230,10 @@ function TopRoutes({ data, loading }: { data: any[]; loading: boolean }) {
             <div key={i} className="group">
               <div className="flex items-center justify-between mb-1.5">
                 <div className="flex items-center gap-2">
-                  <span className="w-5 h-5 bg-slate-100 text-slate-500 rounded-full text-[10px] font-bold flex items-center justify-center flex-shrink-0">{i + 1}</span>
-                  <span className="text-sm font-medium text-slate-700 truncate max-w-[220px]">{r.route}</span>
+                  <span className="w-5 h-5 bg-slate-100 text-slate-500 rounded-full text-[10px] font-bold flex items-center justify-center shrink-0">{i + 1}</span>
+                  <span className="text-sm font-medium text-slate-700 truncate max-w-55">{r.route}</span>
                 </div>
-                <span className="text-sm font-bold text-slate-800 ml-2 flex-shrink-0">{r.count}</span>
+                <span className="text-sm font-bold text-slate-800 ml-2 shrink-0">{r.count}</span>
               </div>
               <div className="h-2 bg-slate-100 rounded-full overflow-hidden ml-7">
                 <div
@@ -317,7 +317,7 @@ function RecentTransactions({ data, loading }: { data: any[]; loading: boolean }
                       <span className="font-mono text-xs font-bold text-slate-700 bg-slate-100 px-2 py-1 rounded">{tx.id}</span>
                     </td>
                     <td className="py-3.5 px-4">
-                      <span className="text-sm font-semibold text-slate-800 truncate max-w-[120px] block">{tx.customer}</span>
+                      <span className="text-sm font-semibold text-slate-800 truncate max-w-30 block">{tx.customer}</span>
                     </td>
                     <td className="py-3.5 px-4">
                       <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${isTime ? 'bg-violet-50 text-violet-600 border-violet-100' : 'bg-sky-50 text-sky-600 border-sky-100'}`}>
@@ -325,7 +325,7 @@ function RecentTransactions({ data, loading }: { data: any[]; loading: boolean }
                       </span>
                     </td>
                     <td className="py-3.5 px-4">
-                      <span className="text-sm text-slate-600 font-medium truncate max-w-[180px] block">{tx.route}</span>
+                      <span className="text-sm text-slate-600 font-medium truncate max-w-45 block">{tx.route}</span>
                     </td>
                     <td className="py-3.5 px-4">
                       <span className="font-bold text-sm text-slate-800 tabular-nums">{fmt(tx.amount)}₫</span>

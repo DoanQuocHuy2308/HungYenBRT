@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from 'react';
-import { Scanner } from '@yudiel/react-qr-scanner';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Train, MapPin, CheckCircle2, XCircle, ScanFace, Brain, Fingerprint, ShieldCheck } from 'lucide-react';
 
 type AppState = 'scan_qr' | 'processing_qr' | 'scan_face' | 'processing_face' | 'success' | 'failed';
@@ -16,27 +15,36 @@ export default function Home() {
 
   const [appState, setAppState] = useState<AppState>('scan_qr');
   const [message, setMessage] = useState<string>('Vui lòng quét QR Vé Điện tử để vào cổng.');
-  const [lastQrToken, setLastQrToken] = useState<string>('');
   const [userAvatar, setUserAvatar] = useState<string | null>(null);
   const [userName, setUserName] = useState<string | null>(null);
   const [faceScore, setFaceScore] = useState<number | null>(null);
-  const [countdown, setCountdown] = useState<number>(1);
+  const [countdown, setCountdown] = useState<number>(3);
   const [analysisStep, setAnalysisStep] = useState<number>(0);
 
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const streamRef = useRef<MediaStream | null>(null);
+  // QR camera refs
+  const qrVideoRef = useRef<HTMLVideoElement>(null);
+  const qrCanvasRef = useRef<HTMLCanvasElement>(null);
+  const qrStreamRef = useRef<MediaStream | null>(null);
+  const rafRef = useRef<number | null>(null);
+
+  // Face camera refs
+  const faceVideoRef = useRef<HTMLVideoElement>(null);
+  const faceStreamRef = useRef<MediaStream | null>(null);
   const countdownRef = useRef<NodeJS.Timeout | null>(null);
   const analysisRef = useRef<NodeJS.Timeout | null>(null);
-  // Refs để tránh stale closure trong setInterval/callback
+
+  // Refs để tránh stale closure
   const lastQrTokenRef = useRef<string>('');
   const locationIdRef = useRef<string>('');
   const appStateRef = useRef<AppState>('scan_qr');
+  const isScanningRef = useRef<boolean>(false);
 
   const setAppStateSynced = (s: AppState) => {
     appStateRef.current = s;
     setAppState(s);
   };
 
+  // ───── Clock ─────
   useEffect(() => {
     const updateTime = () => {
       const now = new Date();
@@ -48,6 +56,7 @@ export default function Home() {
     return () => clearInterval(timer);
   }, []);
 
+  // ───── Locations ─────
   useEffect(() => {
     fetch(`${API_URL}/locations`)
       .then(res => res.json())
@@ -66,6 +75,104 @@ export default function Home() {
       }).catch(console.error);
   }, []);
 
+  // ───── Start QR Camera (chạy 1 lần khi mount) ─────
+  useEffect(() => {
+    startQrCamera();
+    return () => {
+      stopQrScan();
+      qrStreamRef.current?.getTracks().forEach(t => t.stop());
+    };
+  }, []);
+
+  const startQrCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: 'environment',
+          width: { ideal: 4096 },
+          height: { ideal: 2160 },
+          frameRate: { ideal: 60, min: 30 },
+          advanced: [{ focusMode: 'continuous' } as any]
+        }
+      });
+      qrStreamRef.current = stream;
+      if (qrVideoRef.current) {
+        qrVideoRef.current.srcObject = stream;
+        qrVideoRef.current.play();
+      }
+    } catch (e) {
+      console.error('Không thể mở camera QR:', e);
+    }
+  };
+
+  // ───── jsQR scan loop ─────
+  const scanLoop = useCallback(async () => {
+    const video = qrVideoRef.current;
+    const canvas = qrCanvasRef.current;
+    if (!video || !canvas || video.readyState < 2) {
+      rafRef.current = requestAnimationFrame(scanLoop);
+      return;
+    }
+
+    // Chỉ decode khi đang ở trạng thái scan_qr
+    if (appStateRef.current !== 'scan_qr' || isScanningRef.current) {
+      rafRef.current = requestAnimationFrame(scanLoop);
+      return;
+    }
+
+    const w = video.videoWidth;
+    const h = video.videoHeight;
+    if (!w || !h) {
+      rafRef.current = requestAnimationFrame(scanLoop);
+      return;
+    }
+
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    if (!ctx) { rafRef.current = requestAnimationFrame(scanLoop); return; }
+
+    ctx.drawImage(video, 0, 0, w, h);
+    const imageData = ctx.getImageData(0, 0, w, h);
+
+    // Dynamic import jsQR để tránh SSR issues
+    const jsQR = (await import('jsqr')).default;
+    const code = jsQR(imageData.data, w, h, {
+      inversionAttempts: 'attemptBoth', // thử cả QR tối và sáng
+    });
+
+    if (code && code.data && code.data !== lastQrTokenRef.current) {
+      isScanningRef.current = true;
+      await handleQRScan(code.data);
+      isScanningRef.current = false;
+    }
+
+    rafRef.current = requestAnimationFrame(scanLoop);
+  }, []);
+
+  const startQrScan = useCallback(() => {
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    rafRef.current = requestAnimationFrame(scanLoop);
+  }, [scanLoop]);
+
+  const stopQrScan = () => {
+    if (rafRef.current) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    }
+  };
+
+  // Bắt đầu scan loop sau khi camera sẵn sàng
+  useEffect(() => {
+    const video = qrVideoRef.current;
+    if (!video) return;
+    const onReady = () => startQrScan();
+    video.addEventListener('loadeddata', onReady);
+    // Fallback nếu video đã ready
+    if (video.readyState >= 2) startQrScan();
+    return () => video.removeEventListener('loadeddata', onReady);
+  }, [startQrScan]);
+
   const handleLocationChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const val = e.target.value;
     setLocationId(val);
@@ -74,11 +181,9 @@ export default function Home() {
   };
 
   const resetGate = () => {
-    stopCamera();
+    stopFaceCamera();
     if (countdownRef.current) clearInterval(countdownRef.current);
     if (analysisRef.current) clearInterval(analysisRef.current);
-    setAppStateSynced('scan_qr');
-    setLastQrToken('');
     lastQrTokenRef.current = '';
     setUserAvatar(null);
     setUserName(null);
@@ -86,29 +191,28 @@ export default function Home() {
     setCountdown(3);
     setAnalysisStep(0);
     setMessage('Vui lòng quét QR Vé Điện tử để vào cổng.');
+    setAppStateSynced('scan_qr');
   };
 
   const showResult = (status: 'success' | 'failed', msg: string, score?: number) => {
     setAppStateSynced(status);
     setMessage(msg);
     if (score !== undefined) setFaceScore(score);
-    setTimeout(resetGate, 4000);
+    setTimeout(resetGate, 2500);
   };
 
   const handleQRScan = async (qrToken: string) => {
-    if (appStateRef.current !== 'scan_qr' || qrToken === lastQrTokenRef.current) return;
     if (!locationIdRef.current) { alert('Vui lòng cấu hình Ga/Trạm hiện hành!'); return; }
 
-    setLastQrToken(qrToken);
-    lastQrTokenRef.current = qrToken;  
-    setAppStateSynced('processing_qr'); 
+    lastQrTokenRef.current = qrToken;
+    setAppStateSynced('processing_qr');
     setMessage('Đang xử lý vé...');
 
     try {
       const res = await fetch(`${API_URL}/ticket-scan/scan`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ qrToken, locationId: locationIdRef.current }), 
+        body: JSON.stringify({ qrToken, locationId: locationIdRef.current }),
       });
       const data = await res.json();
 
@@ -119,7 +223,7 @@ export default function Home() {
         setUserName(data.userName || null);
         setAppStateSynced('scan_face');
         setMessage('Vé yêu cầu định danh khuôn mặt bằng MTCNN. Vui lòng nhìn thẳng vào camera.');
-        startCamera();
+        startFaceCamera();
       } else {
         showResult('failed', data.message);
       }
@@ -128,11 +232,12 @@ export default function Home() {
     }
   };
 
-  const startCamera = async () => {
+  // ───── Face Camera ─────
+  const startFaceCamera = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: 640, height: 480 } });
-      streamRef.current = stream;
-      if (videoRef.current) videoRef.current.srcObject = stream;
+      faceStreamRef.current = stream;
+      if (faceVideoRef.current) faceVideoRef.current.srcObject = stream;
 
       if (countdownRef.current) clearInterval(countdownRef.current);
       setCountdown(3);
@@ -150,9 +255,9 @@ export default function Home() {
     }
   };
 
-  const stopCamera = () => {
-    streamRef.current?.getTracks().forEach(t => t.stop());
-    streamRef.current = null;
+  const stopFaceCamera = () => {
+    faceStreamRef.current?.getTracks().forEach(t => t.stop());
+    faceStreamRef.current = null;
   };
 
   const ANALYSIS_STEPS = [
@@ -165,14 +270,14 @@ export default function Home() {
   ];
 
   const captureAndVerifyFace = async () => {
-    if (!videoRef.current) return;
+    if (!faceVideoRef.current) return;
 
     const canvas = document.createElement('canvas');
-    canvas.width = videoRef.current.videoWidth || 640;
-    canvas.height = videoRef.current.videoHeight || 480;
+    canvas.width = faceVideoRef.current.videoWidth || 640;
+    canvas.height = faceVideoRef.current.videoHeight || 480;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
-    ctx.drawImage(videoRef.current, 0, 0);
+    ctx.drawImage(faceVideoRef.current, 0, 0);
 
     canvas.toBlob(async (blob) => {
       if (!blob) return;
@@ -188,8 +293,8 @@ export default function Home() {
       }, 250);
 
       const formData = new FormData();
-      formData.append('qrToken', lastQrTokenRef.current);  
-      formData.append('locationId', locationIdRef.current);  
+      formData.append('qrToken', lastQrTokenRef.current);
+      formData.append('locationId', locationIdRef.current);
       formData.append('face_image', blob, 'face.jpg');
 
       try {
@@ -211,6 +316,9 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen bg-slate-50 font-sans text-slate-800">
 
+      {/* Hidden canvas for jsQR processing */}
+      <canvas ref={qrCanvasRef} className="hidden" />
+
       {/* Header */}
       <header className="bg-white border-b border-slate-200 px-8 py-4 flex items-center justify-between z-40 shadow-sm">
         <div className="flex items-center gap-4">
@@ -229,7 +337,7 @@ export default function Home() {
           </a>
           <div className="flex items-center bg-slate-50 px-4 py-2.5 rounded-xl border border-slate-200">
             <MapPin size={16} className="text-slate-500 mr-2" />
-            <select className="bg-transparent text-slate-700 font-bold text-sm outline-none cursor-pointer appearance-none min-w-[150px]"
+            <select className="bg-transparent text-slate-700 font-bold text-sm outline-none cursor-pointer appearance-none min-w-37.5"
               value={locationId} onChange={handleLocationChange}>
               <option value="" disabled>-- Cấu hình Ga / Trạm --</option>
               {locations.map(loc => (
@@ -246,10 +354,9 @@ export default function Home() {
 
       <main className="flex-1 flex items-center justify-center p-6 gap-8">
 
-        {/* Camera Box */}
         <div className="flex flex-col items-center gap-5">
           {/* Status Banner */}
-          <div className={`px-6 py-4 rounded-2xl border-2 w-full max-w-[560px] text-center transition-all duration-300 shadow-md ${
+          <div className={`px-6 py-4 rounded-2xl border-2 w-full max-w-140 text-center transition-all duration-300 shadow-md ${
             appState === 'success' ? 'bg-emerald-50 border-emerald-200 text-emerald-700' :
             appState === 'failed'  ? 'bg-rose-50 border-rose-200 text-rose-700' :
             (appState === 'processing_qr' || appState === 'processing_face') ? 'bg-indigo-50 border-indigo-200 text-indigo-700' :
@@ -265,8 +372,8 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Main Camera Frame - Hardware Bezel Style */}
-          <div className={`relative w-[min(92vw,680px)] h-[min(85vh,700px)] p-4 bg-gradient-to-b from-slate-100 to-slate-200 rounded-[3rem] flex items-center justify-center transition-all duration-500 shadow-[0_20px_50px_-10px_rgba(0,0,0,0.1)] border border-slate-300 ring-4 ring-white`}>
+          {/* Main Camera Frame */}
+          <div className={`relative w-[min(92vw,680px)] h-[min(85vh,700px)] p-4 bg-linear-to-b from-slate-100 to-slate-200 rounded-[3rem] flex items-center justify-center transition-all duration-500 shadow-[0_20px_50px_-10px_rgba(0,0,0,0.1)] border border-slate-300 ring-4 ring-white`}>
             <div className={`relative w-full h-full bg-slate-900 rounded-[2.5rem] overflow-hidden border-8 transition-colors duration-500 ${
               appState === 'success' ? 'border-emerald-500' :
               appState === 'failed'  ? 'border-rose-500' :
@@ -274,32 +381,37 @@ export default function Home() {
               'border-slate-800'
             }`}>
               {/* Grid background */}
-              <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none z-0" />
+              <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-size-[40px_40px] pointer-events-none z-0" />
 
-              {/* QR Scanner */}
-              {(appState === 'scan_qr' || appState === 'processing_qr') && (
-                <div className="absolute inset-0 z-10">
-                  <Scanner
-                    onScan={(result) => { if (result.length) handleQRScan(result[0].rawValue); }}
-                    formats={['qr_code']}
-                    styles={{ container: { width: '100%', height: '100%' }, video: { objectFit: 'cover', transform: 'scaleX(-1)' } }}
-                  />
-                  <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                    <div className="w-[62%] h-[62%] relative shadow-[0_0_0_9999px_rgba(0,0,0,0.4)]">
-                      <div className="absolute top-0 left-0 w-10 h-10 border-t-[4px] border-l-[4px] border-white/90 rounded-tl-xl" />
-                      <div className="absolute top-0 right-0 w-10 h-10 border-t-[4px] border-r-[4px] border-white/90 rounded-tr-xl" />
-                      <div className="absolute bottom-0 left-0 w-10 h-10 border-b-[4px] border-l-[4px] border-white/90 rounded-bl-xl" />
-                      <div className="absolute bottom-0 right-0 w-10 h-10 border-b-[4px] border-r-[4px] border-white/90 rounded-br-xl" />
-                      <div className="absolute top-0 left-0 w-full h-[2px] bg-indigo-500 shadow-[0_0_12px_3px_rgba(99,102,241,0.9)] animate-[scan_2.5s_ease-in-out_infinite]" />
-                    </div>
+              {/* QR Camera — luôn hiển thị, camera không bao giờ tắt */}
+              <div className={`absolute inset-0 z-10 transition-opacity duration-300 ${
+                appState === 'scan_face' || appState === 'processing_face' ? 'opacity-0 pointer-events-none' : 'opacity-100'
+              }`}>
+                <video
+                  ref={qrVideoRef}
+                  autoPlay
+                  playsInline
+                  muted
+                  className="w-full h-full object-cover scale-x-[-1]"
+                />
+                {/* Scan overlay */}
+                <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                  <div className="w-[62%] h-[62%] relative shadow-[0_0_0_9999px_rgba(0,0,0,0.45)]">
+                    <div className="absolute top-0 left-0 w-10 h-10 border-t-4 border-l-4 border-white/90 rounded-tl-xl" />
+                    <div className="absolute top-0 right-0 w-10 h-10 border-t-4 border-r-4 border-white/90 rounded-tr-xl" />
+                    <div className="absolute bottom-0 left-0 w-10 h-10 border-b-4 border-l-4 border-white/90 rounded-bl-xl" />
+                    <div className="absolute bottom-0 right-0 w-10 h-10 border-b-4 border-r-4 border-white/90 rounded-br-xl" />
+                    {appState === 'scan_qr' && (
+                      <div className="absolute top-0 left-0 w-full h-0.5 bg-indigo-500 shadow-[0_0_12px_3px_rgba(99,102,241,0.9)] animate-[scan_1.5s_ease-in-out_infinite]" />
+                    )}
                   </div>
                 </div>
-              )}
+              </div>
 
               {/* Face Scanner */}
               {(appState === 'scan_face' || appState === 'processing_face') && (
                 <div className="absolute inset-0 z-10 bg-black">
-                  <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover scale-x-[-1]" />
+                  <video ref={faceVideoRef} autoPlay playsInline muted className="w-full h-full object-cover scale-x-[-1]" />
                   <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
                     <div className="w-[55%] h-[80%] border-[3px] border-dashed border-white/60 rounded-[120px] relative shadow-[0_0_0_9999px_rgba(0,0,0,0.5)]">
                       <div className="absolute -top-5 left-1/2 -translate-x-1/2 bg-white px-4 py-1.5 rounded-full border border-indigo-200 flex items-center gap-2 shadow-lg">
@@ -313,7 +425,7 @@ export default function Home() {
                       )}
                       {appState === 'processing_face' && (
                         <div className="absolute inset-0 rounded-[120px] overflow-hidden">
-                          <div className="absolute top-0 w-full h-[70px] bg-gradient-to-b from-transparent via-indigo-500/50 to-transparent animate-[scanFace_1.8s_ease-in-out_infinite]" />
+                          <div className="absolute top-0 w-full h-17.5 bg-linear-to-b from-transparent via-indigo-500/50 to-transparent animate-[scanFace_1.8s_ease-in-out_infinite]" />
                         </div>
                       )}
                     </div>
@@ -329,14 +441,14 @@ export default function Home() {
                       <div className="w-28 h-28 rounded-full bg-emerald-50 flex items-center justify-center border-4 border-emerald-100 shadow-2xl shadow-emerald-500/20">
                         <ShieldCheck size={56} className="text-emerald-500" />
                       </div>
-                      <span className="text-emerald-600 font-black text-3xl uppercase tracking-[0.1em]">Đã Mở Cổng</span>
+                      <span className="text-emerald-600 font-black text-3xl uppercase tracking-widest">Đã Mở Cổng</span>
                     </div>
                   ) : (
                     <div className="flex flex-col items-center gap-4 animate-[popIn_0.3s_ease-out]">
                       <div className="w-28 h-28 rounded-full bg-rose-50 flex items-center justify-center border-4 border-rose-100 shadow-2xl shadow-rose-500/20">
                         <XCircle size={56} className="text-rose-500" />
                       </div>
-                      <span className="text-rose-600 font-black text-3xl uppercase tracking-[0.1em]">Từ Chối</span>
+                      <span className="text-rose-600 font-black text-3xl uppercase tracking-widest">Từ Chối</span>
                       {faceScore !== null && (
                         <div className="text-center mt-2">
                           <span className="text-slate-500 font-bold text-xs">MTCNN Distance: {faceScore.toFixed(4)}</span>
